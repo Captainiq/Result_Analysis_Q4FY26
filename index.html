@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Market Intelligence Dashboard</title>
+<title>Pro Trader Dashboard V</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--green:#16a34a;--amber:#d97706;}
@@ -18,7 +18,7 @@ body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-ser
 <body>
 <div class="container py-4">
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-<div><h2 class="fw-bold mb-1">Market Intelligence</h2><div class="muted">Google Sheets Earnings Screener</div></div>
+<div><h2 class="fw-bold mb-1">Pro Trader Dashboard V</h2><div class="muted">Momentum • Sector Rotation • Earnings Scanner</div></div>
 <div class="d-flex gap-2 flex-wrap">
 <input id="search" class="form-control search" placeholder="Search company...">
 <select id="sort" class="form-select">
@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-ser
 <div class="col-md-3"><div class="cardx kpi"><div class="muted">Avg Profit</div><div class="num text-success" id="k3">0%</div></div></div>
 <div class="col-md-3"><div class="cardx kpi"><div class="muted">Strong Picks</div><div class="num text-warning" id="k4">0</div></div></div>
 </div>
-<ul class="nav nav-pills mb-3">
+<div class="row g-3 mb-3"><div class="col-md-4"><div class="cardx p-3"><div class='muted small'>Top Momentum Score</div><div id='momscore' class='num text-primary'>0</div></div></div><div class="col-md-4"><div class="cardx p-3"><div class='muted small'>Negative Alerts</div><div id='negcount' class='num text-danger'>0</div></div></div><div class="col-md-4"><div class="cardx p-3"><div class='muted small'>Sectors Active</div><div id='seccount' class='num text-success'>0</div></div></div></div><ul class="nav nav-pills mb-3">
 <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#p1">Excellent</button></li>
 <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p2">Great</button></li>
 <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p3">Sector</button></li>
@@ -52,9 +52,9 @@ body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-ser
 <div class="modal fade" id="m"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body" id="mbody"></div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const SHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
-const API_KEY  = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
-const RANGE    = 'CurrentQ!A1:F1001';
+const SHEET_ID='PASTE_YOUR_SHEET_ID';
+const API_KEY='PASTE_YOUR_API_KEY';
+const RANGE='Sheet1!A:F';
 let data=[];
 const $=id=>document.getElementById(id);
 let modal; // init after DOM ready
@@ -64,7 +64,7 @@ async function init(){try{modal = new bootstrap.Modal(document.getElementById('m
 function bind(){ $('#search').oninput=render; $('#sort').onchange=render; }
 function filtered(){const q=$('#search').value.toLowerCase();let arr=data.filter(x=>x.name.toLowerCase().includes(q)||x.symbol.toLowerCase().includes(q));const s=$('#sort').value;if(s==='rev')arr.sort((a,b)=>b.rev-a.rev);else if(s==='profit')arr.sort((a,b)=>b.profit-a.profit);else if(s==='sector')arr.sort((a,b)=>a.sector.localeCompare(b.sector));else arr.sort((a,b)=>a.name.localeCompare(b.name));return arr;}
 function avg(arr,k){return arr.length?arr.reduce((t,x)=>t+x[k],0)/arr.length:0;}
-function render(){const arr=filtered();$('#k1').textContent=arr.length;$('#k2').textContent=avg(arr,'rev').toFixed(1)+'%';$('#k3').textContent=avg(arr,'profit').toFixed(1)+'%';const excellent=arr.filter(x=>x.rev>20&&x.profit>20);const great=arr.filter(x=>x.rev>10&&x.profit>10&&!excellent.includes(x));$('#k4').textContent=excellent.length;signalBar(arr);cards(excellent,'excellent');cards(great,'great');tableAll(arr);sectorTable(arr);}
+function render(){const arr=filtered();$('#momscore').textContent=(arr[0]?(arr[0].rev+arr[0].profit).toFixed(1):0);$('#negcount').textContent=arr.filter(x=>x.rev<0||x.profit<0).length;$('#seccount').textContent=new Set(arr.map(x=>x.sector)).size;const arr=filtered();$('#k1').textContent=arr.length;$('#k2').textContent=avg(arr,'rev').toFixed(1)+'%';$('#k3').textContent=avg(arr,'profit').toFixed(1)+'%';const excellent=arr.filter(x=>x.rev>20&&x.profit>20);const great=arr.filter(x=>x.rev>10&&x.profit>10&&!excellent.includes(x));$('#k4').textContent=excellent.length;signalBar(arr);cards(excellent,'excellent');cards(great,'great');tableAll(arr);sectorTable(arr);}
 function signalBar(arr){const leaders=[...arr].sort((a,b)=>(b.rev+b.profit)-(a.rev+a.profit)).slice(0,3).map(x=>x.symbol).join(', ')||'-';const weak=arr.filter(x=>x.rev<0||x.profit<0).slice(0,3).map(x=>x.symbol).join(', ')||'-';const sec={};arr.forEach(x=>{sec[x.sector]??={n:0,s:0};sec[x.sector].n++;sec[x.sector].s+=x.rev+x.profit});const best=Object.entries(sec).sort((a,b)=>(b[1].s/b[1].n)-(a[1].s/a[1].n))[0]?.[0]||'-';$('#lead').textContent=leaders;$('#turn').textContent=leaders;$('#weak').textContent=weak;$('#bestsec').textContent=best;}
 function cards(arr,id){$(id).innerHTML=arr.map(x=>`<div class='col-md-6 col-lg-4'><div class='cardx stock' onclick="openM('${x.symbol}')"><div class='d-flex justify-content-between'><div><div class='fw-bold'>${x.name}</div><div class='small muted'>${x.symbol}</div></div><span class='badge badge-soft'>${x.sector}</span></div><hr><div class='d-flex justify-content-between'><div><div class='small muted'>Revenue</div><div class='fw-bold text-primary'>${x.rev}%</div></div><div><div class='small muted'>Profit</div><div class='fw-bold text-success'>${x.profit}%</div></div></div></div></div>`).join('')||'<div class="muted">No matches</div>';}
 function tableAll(arr){$('#all').innerHTML=arr.map(x=>`<tr onclick="openM('${x.symbol}')"><td><b>${x.name}</b><div class='small muted'>${x.symbol}</div></td><td>${x.sector}</td><td>${x.rev}%</td><td>${x.profit}%</td></tr>`).join('');}
