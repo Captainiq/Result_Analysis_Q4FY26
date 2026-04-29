@@ -1,603 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Intelligence Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-body: #f1f5f9;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --card-bg: #ffffff;
-            --primary: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --border-radius: 12px;
-        }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* --- Header & Controls --- */
-        .dashboard-header {
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 1rem;
-        }
-
-        .form-select-custom {
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-
-        /* --- KPI Metric Cards --- */
-        .kpi-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-            background: #cbd5e1;
-        }
-        .kpi-blue::before { background: var(--primary); }
-        .kpi-green::before { background: var(--success); }
-        .kpi-orange::before { background: var(--warning); }
-
-        .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem; }
-        .kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
-
-        /* --- Tabs --- */
-        .nav-pills .nav-link {
-            color: var(--text-muted);
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #0f172a;
-            color: white;
-        }
-
-        /* --- Stock Cards --- */
-        .stock-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer; 
-        }
-
-        .stock-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: #cbd5e1;
-        }
-
-        .card-header-custom {
-            padding: 1.25rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .card-body-custom {
-            padding: 1.25rem;
-            flex-grow: 1;
-        }
-
-        .card-footer-custom {
-            padding: 1rem 1.25rem;
-            background-color: #f8fafc;
-            border-top: 1px solid #f1f5f9;
-            border-bottom-left-radius: var(--border-radius);
-            border-bottom-right-radius: var(--border-radius);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Status Indicators on Card */
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .bg-exc { background-color: var(--success); }
-        .bg-great { background-color: var(--warning); }
-
-        /* Typography Helper */
-        .data-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-        .data-value { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-        .data-value.trend-up { color: var(--success); }
-        .data-value.trend-neutral { color: var(--primary); }
-        .trend-down { color: #ef4444; }
-
-        /* Badge Styles */
-        .badge-sector {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        /* Table Styles */
-        .table-custom {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-        }
-        .table-custom thead th {
-            background-color: #f8fafc;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            position: sticky;
-            top: 0;
-        }
-        .table-custom tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-            font-size: 0.95rem;
-        }
-        .table-row-hover { cursor: pointer; } 
-        .table-row-hover:hover { background-color: #f8fafc; }
-
-        /* Loader */
-        .loader-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 400px;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Market Intelligence Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+:root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--green:#16a34a;--amber:#d97706;}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+.cardx{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.kpi{padding:1rem}.num{font-size:1.7rem;font-weight:800}.muted{color:var(--muted)}
+.stock{padding:1rem;cursor:pointer;transition:.2s}.stock:hover{transform:translateY(-4px)}
+.badge-soft{background:#eff6ff;color:#1d4ed8}.table thead th{font-size:.78rem;text-transform:uppercase;color:var(--muted)}
+.loader{min-height:50vh;display:grid;place-items:center}.search{max-width:260px}
+</style>
 </head>
 <body>
-
-<div class="container py-5">
-    
-    <div class="dashboard-header d-flex flex-wrap justify-content-between align-items-center">
-        <div>
-            <h2 class="fw-bold mb-1 text-dark">Market Intelligence</h2>
-            <p class="text-muted mb-0 small">Q4 FY26 Earnings Screener</p>
-        </div>
-        <div class="d-flex align-items-center mt-3 mt-md-0">
-            <span class="text-muted small fw-bold me-2 text-uppercase">Sort By</span>
-            <select id="sort-select" class="form-select form-select-custom" style="width: 180px;" onchange="handleSort()">
-                <option value="default">Default</option>
-                <option value="sector">Sector (A-Z)</option>
-                <option value="profit">Highest Profit Growth</option>
-                <option value="revenue">Highest Revenue Growth</option>
-            </select>
-        </div>
-    </div>
-
-    <div id="loader" class="loader-container">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 text-muted fw-medium">Syncing with Google Sheets...</p>
-    </div>
-
-    <div id="dashboard-content" style="display: none;">
-        
-        <div class="row g-4 mb-5">
-            <div class="col-xl-3 col-md-6">
-                <div class="kpi-card">
-                    <div class="kpi-label">Stocks Scanned</div>
-                    <div class="kpi-value" id="m-count">0</div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="kpi-card kpi-green">
-                    <div class="kpi-label">Avg Profit Growth (YoY)</div>
-                    <div class="kpi-value text-success" id="m-profit">0%</div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="kpi-card kpi-blue">
-                    <div class="kpi-label">Avg Revenue Growth (YoY)</div>
-                    <div class="kpi-value text-primary" id="m-rev">0%</div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="kpi-card kpi-orange">
-                    <div class="kpi-label">Margin Expansion</div>
-                    <div class="kpi-value" style="color: var(--warning);" id="m-margin">0</div>
-                </div>
-            </div>
-        </div>
-
-        <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="btn-tab-excellent" data-bs-toggle="pill" data-bs-target="#tab-excellent">🚀 Excellent Picks</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="btn-tab-great" data-bs-toggle="pill" data-bs-target="#tab-great">🌟 Great Picks</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="btn-tab-sector" data-bs-toggle="pill" data-bs-target="#tab-sector">📊 Sector Analysis</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="btn-tab-all" data-bs-toggle="pill" data-bs-target="#tab-all">📋 Full Data Table</button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-            
-            <div class="tab-pane fade show active" id="tab-excellent">
-                <div class="alert alert-success d-inline-flex align-items-center py-2 px-3 mb-4 rounded-3 border-0 bg-success-subtle text-success-emphasis">
-                    <small><strong>Criteria:</strong> Revenue > 20% &nbsp;|&nbsp; Profit > 20% &nbsp;|&nbsp; Margin = Expansion</small>
-                </div>
-                <div class="row g-4" id="container-excellent"></div>
-            </div>
-            
-            <div class="tab-pane fade" id="tab-great">
-                <div class="alert alert-warning d-inline-flex align-items-center py-2 px-3 mb-4 rounded-3 border-0 bg-warning-subtle text-warning-emphasis">
-                    <small><strong>Criteria:</strong> Rev 10-20% &nbsp;|&nbsp; Profit 10-20% &nbsp;|&nbsp; Margin = Expansion</small>
-                </div>
-                <div class="row g-4" id="container-great"></div>
-            </div>
-
-            <div class="tab-pane fade" id="tab-sector">
-                <div class="bg-white rounded-3 shadow-sm border overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table-custom">
-                            <thead>
-                                <tr>
-                                    <th>Sector</th>
-                                    <th>Total Stocks</th>
-                                    <th>Avg Revenue YoY</th>
-                                    <th>Avg Profit YoY</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body-sector"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="tab-all">
-                <div class="bg-white rounded-3 shadow-sm border overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table-custom">
-                            <thead>
-                                <tr>
-                                    <th>Company</th>
-                                    <th>Sector</th>
-                                    <th>Revenue YoY</th>
-                                    <th>Profit YoY</th>
-                                    <th>Margin Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body-all"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div> 
-    </div> 
+<div class="container py-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+<div><h2 class="fw-bold mb-1">Market Intelligence</h2><div class="muted">Google Sheets Earnings Screener</div></div>
+<div class="d-flex gap-2 flex-wrap">
+<input id="search" class="form-control search" placeholder="Search company...">
+<select id="sort" class="form-select">
+<option value="name">Sort: Name</option>
+<option value="rev">Highest Revenue</option>
+<option value="profit">Highest Profit</option>
+<option value="sector">Sector</option>
+</select>
+</div></div>
+<div id="loader" class="loader"><div class="text-center"><div class="spinner-border"></div><div class="mt-2 muted">Syncing data...</div></div></div>
+<div id="app" style="display:none">
+<div class="row g-3 mb-4">
+<div class="col-12"><div class="cardx p-3"><div class="row g-3 text-center"><div class="col-md-3"><div class="muted small">Momentum Leaders</div><div id="lead" class="fw-bold"></div></div><div class="col-md-3"><div class="muted small">Turnaround Picks</div><div id="turn" class="fw-bold"></div></div><div class="col-md-3"><div class="muted small">Weak Earnings</div><div id="weak" class="fw-bold"></div></div><div class="col-md-3"><div class="muted small">Best Sector</div><div id="bestsec" class="fw-bold"></div></div></div></div></div>
+<div class="col-md-3"><div class="cardx kpi"><div class="muted">Stocks</div><div class="num" id="k1">0</div></div></div>
+<div class="col-md-3"><div class="cardx kpi"><div class="muted">Avg Revenue</div><div class="num text-primary" id="k2">0%</div></div></div>
+<div class="col-md-3"><div class="cardx kpi"><div class="muted">Avg Profit</div><div class="num text-success" id="k3">0%</div></div></div>
+<div class="col-md-3"><div class="cardx kpi"><div class="muted">Strong Picks</div><div class="num text-warning" id="k4">0</div></div></div>
 </div>
-
-<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-            <div class="modal-header border-bottom-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body px-4 px-md-5 pb-5 pt-2" id="profileModalBody">
-                </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<ul class="nav nav-pills mb-3">
+<li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#p1">Excellent</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p2">Great</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p3">Sector</button></li>
+<li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p4">All Data</button></li>
+</ul>
+<div class="tab-content">
+<div class="tab-pane fade show active" id="p1"><div class="row g-3" id="excellent"></div></div>
+<div class="tab-pane fade" id="p2"><div class="row g-3" id="great"></div></div>
+<div class="tab-pane fade" id="p3"><div class="cardx p-3 table-responsive"><table class="table"><thead><tr><th>Sector</th><th>Count</th><th>Avg Rev</th><th>Avg Profit</th></tr></thead><tbody id="sector"></tbody></table></div></div>
+<div class="tab-pane fade" id="p4"><div class="cardx p-3 table-responsive"><table class="table"><thead><tr><th>Company</th><th>Sector</th><th>Revenue</th><th>Profit</th></tr></thead><tbody id="all"></tbody></table></div></div>
+</div></div></div>
+<div class="modal fade" id="m"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body" id="mbody"></div></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ==========================================
-    // ⚙️ CONFIGURATION
-    // ==========================================
-    const SHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
-    const API_KEY = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
-    const RANGE = 'CurrentQ!A1:N1001'; 
-    // ==========================================
-
-    let GLOBAL_DATA = [];
-    let profileModalInstance = null;
-
-    // --- Helpers ---
-    const cleanNum = (val) => {
-        if(!val) return 0;
-        let s = val.toString().replace(/%/g,'').replace(/,/g,'').trim();
-        return isNaN(parseFloat(s)) ? 0 : parseFloat(s);
-    };
-    const cleanStr = (val) => val ? val.toString().trim() : "";
-    
-    // --- Data Fetching by Column NAME ---
-    async function init() {
-        profileModalInstance = new bootstrap.Modal(document.getElementById('profileModal'));
-
-        try {
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`);
-            const json = await res.json();
-            
-            if(!json.values || json.values.length === 0) throw new Error("No data returned from Sheet.");
-            
-            const headers = json.values[0].map(h => h ? h.toString().toLowerCase().trim() : "");
-
-            const getColIndex = (possibleNames) => {
-                for (let name of possibleNames) {
-                    const idx = headers.findIndex(h => h.includes(name));
-                    if (idx !== -1) return idx;
-                }
-                return -1; 
-            };
-
-            const idxName = getColIndex(['company', 'name']);
-            const idxSymbol = getColIndex(['symbol', 'ticker']);
-            const idxRev = getColIndex(['revenue']);
-            const idxProf = getColIndex(['profit']);
-            const idxMargin = getColIndex(['margin']);
-            const idxSector = getColIndex(['sector']);
-
-            GLOBAL_DATA = json.values.slice(1).map(r => ({
-                name: idxName !== -1 ? cleanStr(r[idxName]) : "Unknown",
-                symbol: idxSymbol !== -1 ? cleanStr(r[idxSymbol]) : "",
-                rev: idxRev !== -1 ? cleanNum(r[idxRev]) : 0,
-                revStr: idxRev !== -1 ? cleanStr(r[idxRev]) : "N/A",
-                profit: idxProf !== -1 ? cleanNum(r[idxProf]) : 0,
-                profitStr: idxProf !== -1 ? cleanStr(r[idxProf]) : "N/A",
-                marginExp: idxMargin !== -1 ? cleanStr(r[idxMargin]) : "N/A",
-                sector: idxSector !== -1 ? cleanStr(r[idxSector]) : "N/A"
-            })).filter(s => s.name && s.name !== "Unknown");
-
-            renderDashboard();
-            
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('dashboard-content').style.display = 'block';
-            }, 500);
-
-        } catch (e) {
-            document.getElementById('loader').innerHTML = `
-                <div class="alert alert-danger shadow-sm">
-                    <strong>Connection Failed:</strong> ${e.message}
-                </div>`;
-        }
-    }
-
-    // --- Profile Modal Logic ---
-    function openProfile(symbol) {
-        const stock = GLOBAL_DATA.find(s => s.symbol === symbol);
-        if(!stock) return;
-
-        let marginColor = "text-muted";
-        let mLC = stock.marginExp.toLowerCase();
-        if(mLC.includes('expansion')) marginColor = "text-success fw-bold";
-        if(mLC.includes('contraction')) marginColor = "text-danger fw-bold";
-        if(mLC.includes('stable')) marginColor = "text-primary fw-bold";
-
-        document.getElementById('profileModalBody').innerHTML = `
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4 gap-3">
-                <div>
-                    <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.02em;">${stock.name}</h2>
-                    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-                        <span class="badge bg-dark fs-6">${stock.symbol}</span>
-                        <span class="badge-sector border" style="font-size: 0.85rem;">${stock.sector}</span>
-                    </div>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="https://www.google.com/finance/quote/${stock.symbol}:NSE" target="_blank" class="btn btn-sm btn-outline-primary shadow-sm">Google Finance ↗</a>
-                    <a href="https://finance.yahoo.com/quote/${stock.symbol}.NS" target="_blank" class="btn btn-sm btn-outline-secondary shadow-sm">Yahoo ↗</a>
-                </div>
-            </div>
-
-            <hr class="text-muted mb-4">
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="p-3 bg-light rounded-3 border h-100">
-                        <div class="data-label text-muted mb-2">Revenue Growth (YoY)</div>
-                        <div class="fs-3 fw-bold ${stock.rev >= 0 ? 'text-primary' : 'trend-down'}">${stock.revStr}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="p-3 bg-light rounded-3 border h-100">
-                        <div class="data-label text-muted mb-2">Profit Growth (YoY)</div>
-                        <div class="fs-3 fw-bold ${stock.profit >= 0 ? 'text-success' : 'trend-down'}">${stock.profitStr}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="p-3 bg-light rounded-3 border h-100">
-                        <div class="data-label text-muted mb-2">Margin Status</div>
-                        <div class="fs-4 ${marginColor}">${stock.marginExp}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        profileModalInstance.show();
-    }
-
-    // --- Sorting ---
-    function handleSort() {
-        const type = document.getElementById('sort-select').value;
-        if (type === 'sector') {
-            GLOBAL_DATA.sort((a, b) => a.sector.localeCompare(b.sector));
-        } else if (type === 'profit') {
-            GLOBAL_DATA.sort((a, b) => b.profit - a.profit);
-        } else if (type === 'revenue') {
-            GLOBAL_DATA.sort((a, b) => b.rev - a.rev);
-        } else {
-            GLOBAL_DATA.sort((a, b) => a.name.localeCompare(b.name));
-        }
-        renderDashboard();
-    }
-
-    // --- Rendering ---
-    function renderDashboard() {
-        let tRev=0, tProf=0, tMar=0;
-        GLOBAL_DATA.forEach(s => {
-            tRev += s.rev;
-            tProf += s.profit;
-            if(s.marginExp.toLowerCase().includes('expansion')) tMar++;
-        });
-        
-        document.getElementById('m-count').innerText = GLOBAL_DATA.length;
-        document.getElementById('m-profit').innerText = (GLOBAL_DATA.length ? (tProf/GLOBAL_DATA.length).toFixed(1) : 0) + "%";
-        document.getElementById('m-rev').innerText = (GLOBAL_DATA.length ? (tRev/GLOBAL_DATA.length).toFixed(1) : 0) + "%";
-        document.getElementById('m-margin').innerText = tMar;
-
-        const excellent = GLOBAL_DATA.filter(s => s.rev > 20 && s.profit > 20 && s.marginExp.toLowerCase().includes('expansion'));
-        const great = GLOBAL_DATA.filter(s => s.rev > 10 && s.rev <= 20 && s.profit > 10 && s.profit <= 20 && s.marginExp.toLowerCase().includes('expansion'));
-
-        document.getElementById('btn-tab-excellent').innerText = `🚀 Excellent Picks (${excellent.length})`;
-        document.getElementById('btn-tab-great').innerText = `🌟 Great Picks (${great.length})`;
-        document.getElementById('btn-tab-all').innerText = `📋 Full Data Table (${GLOBAL_DATA.length})`;
-
-        drawCards(excellent, 'container-excellent', 'bg-exc');
-        drawCards(great, 'container-great', 'bg-great');
-        drawTable(GLOBAL_DATA);
-        drawSectorAnalysis(GLOBAL_DATA);
-    }
-
-    // --- Sector Analysis Rendering ---
-    function drawSectorAnalysis(data) {
-        const sectorMap = {};
-
-        // Aggregate data by sector
-        data.forEach(s => {
-            const sec = s.sector || 'Unknown';
-            if (!sectorMap[sec]) {
-                sectorMap[sec] = { count: 0, totalRev: 0, totalProf: 0 };
-            }
-            sectorMap[sec].count += 1;
-            sectorMap[sec].totalRev += s.rev;
-            sectorMap[sec].totalProf += s.profit;
-        });
-
-        // Convert map to array and calculate averages
-        const sectorStats = Object.keys(sectorMap).map(sec => {
-            const stats = sectorMap[sec];
-            return {
-                sector: sec,
-                count: stats.count,
-                avgRev: (stats.totalRev / stats.count).toFixed(2),
-                avgProf: (stats.totalProf / stats.count).toFixed(2)
-            };
-        });
-
-        // Sort alphabetically by sector
-        sectorStats.sort((a, b) => a.sector.localeCompare(b.sector));
-
-        const tbody = document.getElementById('table-body-sector');
-        tbody.innerHTML = sectorStats.map(s => {
-            const revColor = s.avgRev >= 0 ? 'text-primary' : 'trend-down';
-            const profColor = s.avgProf >= 0 ? 'text-success' : 'trend-down';
-
-            return `
-            <tr>
-                <td><span class="badge-sector fs-6 px-3 py-2">${s.sector}</span></td>
-                <td class="fw-bold text-muted fs-5 align-middle">${s.count}</td>
-                <td class="${revColor} fw-semibold fs-5 align-middle">${s.avgRev}%</td>
-                <td class="${profColor} fw-bold fs-5 align-middle">${s.avgProf}%</td>
-            </tr>
-            `;
-        }).join('');
-    }
-
-    function drawCards(list, targetId, dotClass) {
-        const el = document.getElementById(targetId);
-        
-        if(list.length === 0) { 
-            el.innerHTML = '<div class="col-12 text-center text-muted py-5">No companies matched this criteria.</div>'; 
-            return; 
-        }
-        
-        el.innerHTML = list.map(s => `
-            <div class="col-lg-4 col-md-6">
-                <div class="stock-card" onclick="openProfile('${s.symbol}')">
-                    <div class="card-header-custom d-flex justify-content-between align-items-start">
-                        <div style="overflow:hidden;">
-                            <h6 class="fw-bold mb-1 text-truncate" title="${s.name}">${s.name}</h6>
-                            <div class="text-muted small">${s.symbol}</div>
-                        </div>
-                        <span class="badge-sector">${s.sector}</span>
-                    </div>
-                    
-                    <div class="card-body-custom">
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="data-label">Revenue Growth</div>
-                                <div class="data-value ${s.rev >= 0 ? 'trend-neutral' : 'trend-down'}">${s.revStr}</div>
-                            </div>
-                            <div class="col-6 text-end">
-                                <div class="data-label">Profit Growth</div>
-                                <div class="data-value ${s.profit >= 0 ? 'trend-up' : 'trend-down'}">${s.profitStr}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer-custom">
-                        <div class="d-flex align-items-center w-100">
-                            <span class="status-dot ${dotClass}"></span>
-                            <span class="small fw-semibold text-muted">Margin: ${s.marginExp || 'N/A'}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function drawTable(list) {
-        const tbody = document.getElementById('table-body-all');
-        tbody.innerHTML = list.map(s => {
-            let marginColor = "text-muted";
-            let mLC = s.marginExp.toLowerCase();
-            if(mLC.includes('expansion')) marginColor = "text-success fw-bold";
-            if(mLC.includes('contraction')) marginColor = "text-danger fw-bold";
-            if(mLC.includes('stable')) marginColor = "text-primary fw-bold";
-
-            const revColor = s.rev >= 0 ? 'text-primary' : 'trend-down';
-            const profColor = s.profit >= 0 ? 'text-success' : 'trend-down';
-
-            return `
-            <tr class="table-row-hover" onclick="openProfile('${s.symbol}')">
-                <td>
-                    <div class="fw-bold text-dark">${s.name}</div>
-                    <div class="small text-muted">${s.symbol}</div>
-                </td>
-                <td><span class="badge-sector">${s.sector}</span></td>
-                <td class="${revColor} fw-semibold">${s.revStr}</td>
-                <td class="${profColor} fw-bold">${s.profitStr}</td>
-                <td class="${marginColor} small">${s.marginExp}</td>
-            </tr>
-            `;
-        }).join('');
-    }
-
-    init();
-
+const SHEET_ID = '12e5NUDJQXnyB2V27WynpgGw2Gwg4oxqefc8jVOyy3aM';
+const API_KEY  = 'AIzaSyBYXp1ILH81N2lo_oPn6mGvju0hpyWTHFI';
+const RANGE    = 'CurrentQ!A1:F1001';
+let data=[];
+const $=id=>document.getElementById(id);
+let modal; // init after DOM ready
+const num=v=>parseFloat(String(v||0).replace('%','').replace(/,/g,''))||0;
+const txt=v=>String(v||'').trim();
+async function init(){try{modal = new bootstrap.Modal(document.getElementById('m'));const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;const r=await fetch(url);if(!r.ok) throw new Error('HTTP '+r.status);const j=await r.json();const rows=j.values||[];if(rows.length<2) throw new Error('No data rows');data=rows.slice(1).map(x=>({name:txt(x[0]),symbol:txt(x[1]),rev:num(x[2]),profit:num(x[3]),sector:txt(x[5])||'N/A'})).filter(x=>x.name);bind();render();if($('#loader')) $('#loader').style.display='none'; if($('#app')) $('#app').style.display='block';}catch(e){const el=$('#loader')||document.body;el.innerHTML=`<div class='container py-4'><div class='alert alert-danger'>${e.message}</div></div>`;}}
+function bind(){ $('#search').oninput=render; $('#sort').onchange=render; }
+function filtered(){const q=$('#search').value.toLowerCase();let arr=data.filter(x=>x.name.toLowerCase().includes(q)||x.symbol.toLowerCase().includes(q));const s=$('#sort').value;if(s==='rev')arr.sort((a,b)=>b.rev-a.rev);else if(s==='profit')arr.sort((a,b)=>b.profit-a.profit);else if(s==='sector')arr.sort((a,b)=>a.sector.localeCompare(b.sector));else arr.sort((a,b)=>a.name.localeCompare(b.name));return arr;}
+function avg(arr,k){return arr.length?arr.reduce((t,x)=>t+x[k],0)/arr.length:0;}
+function render(){const arr=filtered();$('#k1').textContent=arr.length;$('#k2').textContent=avg(arr,'rev').toFixed(1)+'%';$('#k3').textContent=avg(arr,'profit').toFixed(1)+'%';const excellent=arr.filter(x=>x.rev>20&&x.profit>20);const great=arr.filter(x=>x.rev>10&&x.profit>10&&!excellent.includes(x));$('#k4').textContent=excellent.length;signalBar(arr);cards(excellent,'excellent');cards(great,'great');tableAll(arr);sectorTable(arr);}
+function signalBar(arr){const leaders=[...arr].sort((a,b)=>(b.rev+b.profit)-(a.rev+a.profit)).slice(0,3).map(x=>x.symbol).join(', ')||'-';const weak=arr.filter(x=>x.rev<0||x.profit<0).slice(0,3).map(x=>x.symbol).join(', ')||'-';const sec={};arr.forEach(x=>{sec[x.sector]??={n:0,s:0};sec[x.sector].n++;sec[x.sector].s+=x.rev+x.profit});const best=Object.entries(sec).sort((a,b)=>(b[1].s/b[1].n)-(a[1].s/a[1].n))[0]?.[0]||'-';$('#lead').textContent=leaders;$('#turn').textContent=leaders;$('#weak').textContent=weak;$('#bestsec').textContent=best;}
+function cards(arr,id){$(id).innerHTML=arr.map(x=>`<div class='col-md-6 col-lg-4'><div class='cardx stock' onclick="openM('${x.symbol}')"><div class='d-flex justify-content-between'><div><div class='fw-bold'>${x.name}</div><div class='small muted'>${x.symbol}</div></div><span class='badge badge-soft'>${x.sector}</span></div><hr><div class='d-flex justify-content-between'><div><div class='small muted'>Revenue</div><div class='fw-bold text-primary'>${x.rev}%</div></div><div><div class='small muted'>Profit</div><div class='fw-bold text-success'>${x.profit}%</div></div></div></div></div>`).join('')||'<div class="muted">No matches</div>';}
+function tableAll(arr){$('#all').innerHTML=arr.map(x=>`<tr onclick="openM('${x.symbol}')"><td><b>${x.name}</b><div class='small muted'>${x.symbol}</div></td><td>${x.sector}</td><td>${x.rev}%</td><td>${x.profit}%</td></tr>`).join('');}
+function sectorTable(arr){const m={};arr.forEach(x=>{m[x.sector]??={c:0,r:0,p:0};m[x.sector].c++;m[x.sector].r+=x.rev;m[x.sector].p+=x.profit});$('#sector').innerHTML=Object.entries(m).map(([k,v])=>`<tr><td>${k}</td><td>${v.c}</td><td>${(v.r/v.c).toFixed(1)}%</td><td>${(v.p/v.c).toFixed(1)}%</td></tr>`).join('');}
+window.openM=s=>{const x=data.find(i=>i.symbol===s);if(!x)return;$('#mbody').innerHTML=`<h4>${x.name}</h4><div class='muted mb-3'>${x.symbol} • ${x.sector}</div><div class='row g-2'><div class='col-6'><div class='cardx p-3'>Revenue <div class='fw-bold text-primary fs-4'>${x.rev}%</div></div></div><div class='col-6'><div class='cardx p-3'>Profit <div class='fw-bold text-success fs-4'>${x.profit}%</div></div></div></div>`;modal.show();}
+init();
+</script>
+<script>
+// Enhanced investor/swing trader helper widgets
 </script>
 </body>
 </html>
